@@ -84,7 +84,7 @@ export function HistorySidebar({
   return (
     <aside
       id="history-panel"
-      className="w-full lg:w-80 h-full flex flex-col border-r border-[#222222] bg-[#111111]"
+      className="w-full lg:w-80 h-full flex flex-col border-r border-[#222222] bg-[#111111] lg:fixed lg:left-0 lg:top-16 lg:bottom-0 lg:z-20"
     >
       {/* Top Action Header */}
       <div className="p-4 border-b border-[#222222] space-y-3">

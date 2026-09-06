@@ -117,7 +117,7 @@ export function Dashboard() {
   const activeDoc = currentInteraction || createFreshDraft(user.uid);
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-[#0a0a0a] text-gray-200">
+    <div className="flex-1 flex flex-col min-h-screen pt-16 bg-[#0a0a0a] text-gray-200">
       {/* Optional Dashboard Error Banner */}
       {dashboardError && (
         <div className="bg-red-950/80 border-b border-red-800 text-red-200 px-4 py-2 text-xs flex items-center justify-between">
@@ -132,7 +132,7 @@ export function Dashboard() {
       )}
 
       {/* Mobile Top Toggle Strip */}
-      <div className="lg:hidden border-b border-[#222222] bg-[#111111] px-4 py-2 flex items-center justify-between">
+      <div className="lg:hidden border-b border-[#222222] bg-[#111111] px-4 py-2 flex items-center justify-between fixed top-16 left-0 right-0 z-10">
         <button
           onClick={() => setSidebarOpenMobile(!sidebarOpenMobile)}
           className="flex items-center gap-2 text-xs font-medium text-gray-300 bg-[#1a1a1a] border border-[#333333] px-3 py-1.5 rounded-lg"
@@ -147,11 +147,11 @@ export function Dashboard() {
       </div>
 
       {/* Main Workspace Layout */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative pt-[52px] lg:pt-0">
         {/* Sidebar for Desktop & Mobile Overlay */}
         <div
           className={`
-            fixed inset-y-0 left-0 z-20 w-80 bg-[#111111] transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0
+            fixed inset-y-0 left-0 top-16 z-20 w-80 bg-[#111111] transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0
             ${sidebarOpenMobile ? 'translate-x-0' : '-translate-x-full'}
           `}
         >
@@ -174,12 +174,14 @@ export function Dashboard() {
         )}
 
         {/* Main Canvas Area */}
-        <JournalCanvas
-          interaction={activeDoc}
-          onUpdate={handleUpdateInteraction}
-          userId={user.uid}
-          isSaving={isSaving}
-        />
+        <div className="flex-1 lg:ml-80">
+          <JournalCanvas
+            interaction={activeDoc}
+            onUpdate={handleUpdateInteraction}
+            userId={user.uid}
+            isSaving={isSaving}
+          />
+        </div>
       </div>
 
       {/* Floating Verification / Walkthrough Quick Toggle */}

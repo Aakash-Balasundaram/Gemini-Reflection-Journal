@@ -30,7 +30,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className="w-full border-b border-[#222222] bg-[#0c0c0c]/90 backdrop-blur-md sticky top-0 z-30">
+      <header className="w-full border-b border-[#222222] bg-[#0c0c0c]/90 backdrop-blur-md fixed top-0 left-0 right-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Brand & Indicators */}
           <div className="flex items-center space-x-3">
