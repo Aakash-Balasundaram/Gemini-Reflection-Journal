@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "aakash735cse@gmail.com" ||
+        request.auth.token.role == "admin" ||
+        (exists(/databases/$(database)/documents/roles/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.role == "admin")
+      );
+    }
+
+    // Immutable Admin Audit Logs: Write-only or append-only by verified admins, read-only for verified admins
+    match /adminAuditLogs/{logId} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // User Roles collection: readable by signed-in users, writable by admins
+    match /roles/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // User document and nested subcollections
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+
+      // Journal Entries collection with Location Geodata Source verification
+      match /entries/{entryId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId)
+          && (!('location' in request.resource.data) || request.resource.data.location.source == "google_places");
+        allow update: if isOwner(userId)
+          && (!('location' in request.resource.data) || request.resource.data.location.source == "google_places");
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      // User-isolated interactions and reflections with Location Geodata Source verification
+      match /interactions/{interactionId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId)
+          && (!('location' in request.resource.data) || request.resource.data.location.source == "google_places");
+        allow update: if isOwner(userId)
+          && (!('location' in request.resource.data) || request.resource.data.location.source == "google_places");
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      match /reflections/{reflectionId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow write: if isOwner(userId);
+      }
+
+      // Notification logs: readable and append-only by owner or admin, immutable once written
+      match /notificationLog/{logId} {
+        allow read, create: if isOwner(userId) || isAdmin();
+        allow update, delete: if false;
+      }
+
+      // User notification & preference settings
+      match /settings/{settingId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+
+      // Daily quota counter (managed server-side, readable by owner)
+      match /quota/{quotaId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+    }
+
+    // Diagnostic connection test document
+    match /test/{docId} {
+      allow read: if true;
+    }
+  }
+}
+

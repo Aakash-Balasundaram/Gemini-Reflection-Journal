@@ -1,0 +1,126 @@
+{
+  "entities": {
+    "LocationData": {
+      "title": "LocationData",
+      "description": "Server-verified canonical Google Places geodata.",
+      "type": "object",
+      "properties": {
+        "placeId": { "type": "string" },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "formattedAddress": { "type": "string" },
+        "source": { "type": "string", "enum": ["google_places"] }
+      },
+      "required": ["placeId", "lat", "lng", "formattedAddress", "source"]
+    },
+    "Interaction": {
+      "title": "Interaction",
+      "description": "User journal reflection with multi-turn conversation entries with Gemini and optional verified location.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who owns this interaction."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the reflection session.",
+          "maxLength": 200
+        },
+        "mode": {
+          "type": "string",
+          "description": "The interaction mode (reflection, summary, brainstorm, chat).",
+          "enum": ["reflection", "summary", "brainstorm", "chat"]
+        },
+        "turns": {
+          "type": "array",
+          "description": "Array of conversation turns."
+        },
+        "location": {
+          "$ref": "#/entities/LocationData",
+          "description": "Server-verified Google Places location object."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp in ISO format."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp in ISO format."
+        }
+      },
+      "required": ["userId", "title", "mode", "turns", "createdAt", "updatedAt"]
+    },
+    "AdminAuditLog": {
+      "title": "AdminAuditLog",
+      "description": "Immutable security log of all elevated administrative actions.",
+      "type": "object",
+      "properties": {
+        "actorUid": { "type": "string" },
+        "action": { "type": "string" },
+        "targetUid": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "result": { "type": "string" },
+        "metadata": { "type": "object" }
+      },
+      "required": ["actorUid", "action", "targetUid", "timestamp", "result"]
+    },
+    "NotificationLog": {
+      "title": "NotificationLog",
+      "description": "Log of outbound notification dispatches.",
+      "type": "object",
+      "properties": {
+        "channel": { "type": "string", "enum": ["slack", "discord", "email"] },
+        "triggerReason": { "type": "string" },
+        "deliveredAt": { "type": "string" },
+        "status": { "type": "string" },
+        "entryId": { "type": "string" }
+      },
+      "required": ["channel", "triggerReason", "deliveredAt", "status", "entryId"]
+    },
+    "UserSettings": {
+      "title": "UserSettings",
+      "description": "User preferences including notification opt-in channels.",
+      "type": "object",
+      "properties": {
+        "notifications": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "channels": {
+              "type": "object",
+              "properties": {
+                "slack": { "type": "boolean" },
+                "discord": { "type": "boolean" },
+                "email": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        "updatedAt": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}/interactions/{interactionId}": {
+      "schema": "Interaction",
+      "description": "User-isolated collection of journal reflections and dialogue turns."
+    },
+    "/users/{userId}/entries/{entryId}": {
+      "schema": "Interaction",
+      "description": "User-isolated journal entries with optional location."
+    },
+    "/adminAuditLogs/{logId}": {
+      "schema": "AdminAuditLog",
+      "description": "Immutable audit logs for administrative actions."
+    },
+    "/users/{userId}/notificationLog/{logId}": {
+      "schema": "NotificationLog",
+      "description": "Per-user outbound notification history."
+    },
+    "/users/{userId}/settings/preferences": {
+      "schema": "UserSettings",
+      "description": "Per-user notification settings and preferences."
+    }
+  }
+}
